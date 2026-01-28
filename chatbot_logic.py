@@ -237,7 +237,7 @@ def get_persona_prompt():
     
     # prompt9 파일 로드
     try:
-        prompt_file_path = r"C:\Users\kma80\Desktop\python_workspace\LLM\중견챗봇\code\prompt9.txt"
+        prompt_file_path = "prompt9_persona.txt"
         with open(prompt_file_path, 'r', encoding='utf-8') as f:
             persona_prompt = f.read()
         
@@ -257,7 +257,7 @@ def get_persona_prompt():
 def get_system_prompt_stage1(user_info):
     """Stage 1: 정보 수집 단계 프롬프트"""
     # 프롬프트 파일 경로
-    prompt_file_path = r"C:\Users\kma80\Desktop\python_workspace\LLM\중견챗봇\code\prompt1.txt"
+    prompt_file_path = "prompt1.txt"
     
     # 파일에서 프롬프트 로드
     prompt1 = load_prompt_from_file(prompt_file_path)
@@ -287,7 +287,7 @@ def get_system_prompt_stage1(user_info):
 def get_system_prompt_stage2(user_info):
     """Stage 2: 인지왜곡 탐색 단계 프롬프트"""
     # 프롬프트 파일 경로
-    prompt_file_path = r"C:\Users\kma80\Desktop\python_workspace\LLM\중견챗봇\code\prompt4.txt"
+    prompt_file_path = "prompt4.txt"
     
     # 파일에서 프롬프트 로드
     prompt4 = load_prompt_from_file(prompt_file_path)
@@ -335,7 +335,7 @@ def get_system_prompt_stage2(user_info):
 def get_system_prompt_evaluator():
     """정보 수집 완료 평가 에이전트 프롬프트"""
     # 프롬프트 파일 경로
-    prompt_file_path = r"C:\Users\kma80\Desktop\python_workspace\LLM\중견챗봇\code\prompt2.txt"
+    prompt_file_path = "prompt2.txt"
     
     # 파일에서 프롬프트 로드
     prompt2 = load_prompt_from_file(prompt_file_path)
@@ -359,7 +359,7 @@ def get_system_prompt_evaluator():
 def get_system_prompt_extractor():
     """감정-논리-행동 추출 에이전트 프롬프트"""
     # 프롬프트 파일 경로
-    prompt_file_path = r"C:\Users\kma80\Desktop\python_workspace\LLM\중견챗봇\code\prompt3.txt"
+    prompt_file_path = "prompt3.txt"
     
     # 파일에서 프롬프트 로드
     prompt3 = load_prompt_from_file(prompt_file_path)
@@ -381,7 +381,7 @@ def get_system_prompt_extractor():
 def get_system_prompt_distortion_evaluator():
     """인지왜곡 추출 준비 평가 에이전트 프롬프트"""
     # 프롬프트 파일 경로
-    prompt_file_path = r"C:\Users\kma80\Desktop\python_workspace\LLM\중견챗봇\code\prompt5.txt"
+    prompt_file_path = "prompt5.txt"
     
     # 파일에서 프롬프트 로드
     prompt5 = load_prompt_from_file(prompt_file_path)
@@ -405,7 +405,7 @@ JSON 형식으로 응답하세요."""
 def get_system_prompt_distortion_extractor():
     """인지왜곡 유형 추출 에이전트 프롬프트"""
     # 프롬프트 파일 경로
-    prompt_file_path = r"C:\Users\kma80\Desktop\python_workspace\LLM\중견챗봇\code\prompt6.txt"
+    prompt_file_path = "prompt6.txt"
     
     # 파일에서 프롬프트 로드
     prompt6 = load_prompt_from_file(prompt_file_path)
