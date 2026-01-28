@@ -21,6 +21,29 @@ except ImportError:
     print("⚠️ 안전 에이전트를 불러올 수 없습니다.")
 
 
+# ========== API 키 헬퍼 함수 ==========
+def get_api_key():
+    """
+    API 키 가져오기 (Streamlit Secrets 우선, 환경변수 대체)
+    """
+    try:
+        # Streamlit Secrets 시도
+        api_key = st.secrets.get("OPENAI_API_KEY")
+        if api_key:
+            return api_key
+    except:
+        pass
+    
+    # 환경변수 시도
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key:
+        return api_key
+    
+    # 둘 다 없으면 에러
+    st.error("⚠️ OpenAI API 키가 설정되지 않았습니다. Streamlit Secrets에 OPENAI_API_KEY를 추가하세요.")
+    return None
+
+
 
 def initialize_session_state():
     """세션 상태 초기화"""
@@ -54,7 +77,7 @@ def initialize_session_state():
         print("\n[안전 에이전트 초기화 시작]")
         try:
             # API 키 (다른 에이전트와 동일)
-            api_key = "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"
+            api_key = get_api_key()
             
             if api_key:
                 st.session_state.safety_agent = SafetyAgent(api_key)
@@ -442,7 +465,7 @@ def generate_response_with_gpt(user_message, user_info):
     """GPT API를 사용하여 응답 생성"""
     try:
         # OpenAI 클라이언트 초기화 (API 키 하드코딩)
-        api_key = "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"
+        api_key = get_api_key()
         
         client = OpenAI(api_key=api_key)
         
@@ -484,7 +507,7 @@ def check_collection_complete_with_evaluator():
     """평가 에이전트를 사용하여 정보 수집 완료 여부 확인"""
     try:
         # API 키
-        api_key = "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"
+        api_key = get_api_key()
         client = OpenAI(api_key=api_key)
         
         # 대화 내역을 텍스트로 변환
@@ -539,7 +562,7 @@ def extract_emotion_logic_behavior():
     """추출 에이전트를 사용하여 감정-논리-행동 추출"""
     try:
         # API 키
-        api_key = "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"
+        api_key = get_api_key()
         client = OpenAI(api_key=api_key)
         
         # 대화 내역을 텍스트로 변환 (사용자 메시지만)
@@ -593,7 +616,7 @@ def check_distortion_extraction_ready():
     """인지왜곡 추출 준비 평가"""
     try:
         # API 키
-        api_key = "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"
+        api_key = get_api_key()
         client = OpenAI(api_key=api_key)
         
         # Stage 2 (analysis) 대화만 필터링
@@ -695,7 +718,7 @@ def extract_with_gpt(conversation_text):
     """GPT를 사용한 인지왜곡 추출"""
     try:
         # API 키
-        api_key = "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"
+        api_key = get_api_key()
         client = OpenAI(api_key=api_key)
         
         # 추출 에이전트 프롬프트
@@ -867,7 +890,7 @@ def select_restructuring_method():
     """재구조화 방법 선택 (평가 에이전트)"""
     try:
         # API 키
-        api_key = "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"
+        api_key = get_api_key()
         client = OpenAI(api_key=api_key)
         
         # 선택된 왜곡 정보
@@ -985,7 +1008,7 @@ def generate_restructuring_response(user_message, user_info):
     """재구조화 단계 응답 생성"""
     try:
         # API 키
-        api_key = "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"
+        api_key = get_api_key()
         client = OpenAI(api_key=api_key)
         
         # 재구조화 시스템 프롬프트
