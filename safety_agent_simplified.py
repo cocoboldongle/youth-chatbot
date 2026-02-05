@@ -1,5 +1,5 @@
 """
-안전 모니터링 에이전트 - Level 4,5만 경고 (수정판)
+안전 모니터링 에이전트 - Level 5만 경고 (수정판)
 """
 
 import openai
@@ -100,7 +100,7 @@ class SafetyAgent:
     
     def check_escalation_pattern(self) -> Tuple[bool, str]:
         """
-        위험도 상승 패턴 감지 - Level 4,5만 추적
+        위험도 상승 패턴 감지 - Level 5만 추적
         
         Returns:
             (패턴 감지 여부, 경고 메시지)
@@ -110,21 +110,21 @@ class SafetyAgent:
         
         recent_levels = [h['risk_level'] for h in self.risk_history[-5:]]
         
-        # 3회 연속 Level 4+
-        if len(recent_levels) >= 3 and all(level >= 4 for level in recent_levels[-3:]):
-            return True, "🚨 3회 연속 높은 위험도 감지. 즉시 전문가 상담이 필요합니다."
+        # 3회 연속 Level 5
+        if len(recent_levels) >= 3 and all(level >= 5 for level in recent_levels[-3:]):
+            return True, "🚨 3회 연속 긴급 위험도 감지. 즉시 전문가 상담이 필요합니다."
         
-        # 5회 중 3회 이상 Level 4+
+        # 5회 중 3회 이상 Level 5
         if len(recent_levels) >= 5:
-            high_risk_count = sum(1 for level in recent_levels[-5:] if level >= 4)
-            if high_risk_count >= 3:
-                return True, "🚨 반복적인 높은 위험도 감지. 전문가 상담을 강력히 권장합니다."
+            critical_count = sum(1 for level in recent_levels[-5:] if level >= 5)
+            if critical_count >= 3:
+                return True, "🚨 반복적인 긴급 위험도 감지. 전문가 상담을 강력히 권장합니다."
         
         return False, ""
     
     def get_intervention_message(self, assessment: Dict) -> str:
         """
-        위험도에 따른 개입 메시지 생성 - Level 4,5만
+        위험도에 따른 개입 메시지 생성 - Level 5만
         
         Args:
             assessment: 위험도 평가 결과
@@ -153,25 +153,8 @@ class SafetyAgent:
 꼭 이야기해주세요.
 """
         
-        elif risk_level == 4:
-            return """
-😟 **전문가 상담을 권장합니다**
-
-지금 정말 힘든 시간을 보내고 있는 것 같아요.
-혼자 이런 감정을 감당하기 너무 어렵죠.
-
-이런 감정은 전문가의 도움이 필요할 수 있어요.
-
-**상담 받아보는 건 어떨까요?**
-- 📞 청소년 전화: **1388**
-- 📞 정신건강상담: **1577-0199**
-
-부모님이나 학교 선생님께도 이야기해보세요.
-혼자 감당하지 않아도 돼요.
-"""
-        
         else:
-            return ""  # Level 1-3은 개입 없음
+            return ""  # Level 1-4는 개입 없음
     
     def should_continue_session(self, assessment: Dict) -> bool:
         """
@@ -186,14 +169,14 @@ class SafetyAgent:
 
 def display_safety_alert(assessment: Dict):
     """
-    안전 경고 UI 표시 - Level 4,5만
+    안전 경고 UI 표시 - Level 5만
     
     Args:
         assessment: 위험도 평가 결과
     """
     risk_level = assessment.get('risk_level', 1)
     
-    # Level 5: 긴급 위험
+    # Level 5: 긴급 위험만 경고 표시
     if risk_level == 5:
         st.error("""
 ### 🚨 긴급 상황 감지
@@ -213,21 +196,7 @@ def display_safety_alert(assessment: Dict):
         if st.button("🔴 대화 종료 및 응급 연락처 확인", use_container_width=True):
             st.session_state.emergency_mode = True
     
-    # Level 4: 높은 위험
-    elif risk_level == 4:
-        st.warning("""
-### 😟 전문가 상담이 필요한 것 같아요
-
-지금 느끼는 감정은 전문가의 도움이 필요할 수 있습니다.
-
-**상담 연락처:**
-- 📞 청소년 전화: 1388
-- 📞 정신건강상담: 1577-0199
-
-부모님이나 선생님께도 이야기해보세요.
-        """)
-    
-    # Level 1-3: 경고 없음 (정상 범위)
+    # Level 1-4: 경고 없음 (정상 범위)
 
 
 def check_crisis_keywords(text: str) -> bool:
@@ -316,7 +285,7 @@ def display_emergency_screen():
 
 def log_safety_assessment(assessment: Dict, user_id: str = "anonymous"):
     """
-    안전 평가 로그 저장 (Level 4,5만)
+    안전 평가 로그 저장 (Level 5만)
     
     Args:
         assessment: 평가 결과
@@ -324,8 +293,8 @@ def log_safety_assessment(assessment: Dict, user_id: str = "anonymous"):
     """
     risk_level = assessment.get('risk_level', 1)
     
-    # Level 4,5만 로그 저장
-    if risk_level >= 4:
+    # Level 5만 로그 저장
+    if risk_level >= 5:
         import datetime
         
         log_entry = {
