@@ -199,6 +199,42 @@ def render_sidebar_profile(user_info):
         
         st.markdown("---")
         
+        # 선택한 페르소나 표시
+        if 'selected_persona' in st.session_state and st.session_state.selected_persona:
+            st.markdown("### 🎭 대화 스타일")
+            
+            # 페르소나 정보 (persona_ui.py의 PERSONAS와 동일하게)
+            PERSONAS = {
+                "detective": {
+                    "name": "분석적 탐정형",
+                    "emoji": "🕵️",
+                    "description": "논리적이고 체계적인 대화"
+                },
+                "friend": {
+                    "name": "따뜻한 친구형",
+                    "emoji": "💕",
+                    "description": "공감적이고 따뜻한 대화"
+                },
+                "cool": {
+                    "name": "쿨한 형·누나형",
+                    "emoji": "😎",
+                    "description": "현실적이고 유머러스한 대화"
+                },
+                "coach": {
+                    "name": "차분한 코치형",
+                    "emoji": "🧘",
+                    "description": "안정적이고 신뢰감 있는 대화"
+                }
+            }
+            
+            selected = st.session_state.selected_persona
+            if selected in PERSONAS:
+                persona = PERSONAS[selected]
+                st.markdown(f"**{persona['emoji']} {persona['name']}**")
+                st.caption(persona['description'])
+        
+        st.markdown("---")
+        
         # AI 리마인더 (APA 권고 2 - 의존성 방지)
         st.warning("""
 **🤖 AI 사용 주의:**
