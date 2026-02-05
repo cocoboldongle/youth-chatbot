@@ -427,16 +427,12 @@ def render_persona_selection():
 
 
 def display_selected_persona_info(persona_id):
-    """선택된 페르소나 정보 표시"""
+    """선택된 페르소나 정보 표시 - 스타일 변경 버튼만 제공"""
     
-    persona = PERSONAS.get(persona_id, PERSONAS['friend'])
+    # 페르소나 정보는 ui_components.py에서 표시하므로
+    # 여기서는 스타일 변경 버튼만 제공
     
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 🎭 대화 스타일")
-    st.sidebar.markdown(f"**{persona['emoji']} {persona['name']}**")
-    st.sidebar.caption(persona['description'])
-    
-    # AI 리마인더 추가
+    # AI 리마인더
     st.sidebar.markdown("---")
     st.sidebar.info("""
 **🤖 기억하세요:**
@@ -445,4 +441,7 @@ def display_selected_persona_info(persona_id):
 - 과도한 의존 주의
     """)
     
-    return st.sidebar.button("🔄 스타일 변경", key="change_persona")
+    st.sidebar.markdown("---")
+    
+    # 스타일 변경 버튼
+    return st.sidebar.button("🔄 스타일 변경", key="change_persona", use_container_width=True)
