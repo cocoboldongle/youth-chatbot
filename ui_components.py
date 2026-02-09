@@ -95,7 +95,7 @@ def render_user_info_form():
         # 성별 선택
         gender = st.selectbox(
             "성별을 선택해주세요 *",
-            ["선택하세요", "남성", "여성", "기타/선택 안 함"],
+            ["선택하세요", "남성", "여성"],
             index=0
         )
         
@@ -108,39 +108,32 @@ def render_user_info_form():
             step=1
         )
         
-        # 학교급 선택
-        school_level = st.radio(
-            "현재 학교급을 선택해주세요 *",
-            ["중학생", "고등학생"],
-            index=0
-        )
-        
-        # 감정 강도 선택
-        st.markdown("### 💭 현재 감정 상태")
+        # 하루 점수 선택
+        st.markdown("### 💭 요즘 하루 점수")
         st.markdown("""
-        **지금 느끼는 감정의 강도를 선택해주세요** *
+        **요즘 하루를 점수로 매기면 보통 몇 점쯤일까요?** *
         
         💡 힌트:
-        - 1-3: 약한 감정
-        - 4-6: 중간 정도의 감정
-        - 7-10: 강한 감정
+        - 0점: 괜찮음
+        - 5점: 보통
+        - 10점: 최악
         """)
         
         emotion_intensity = st.slider(
-            "감정 강도",
-            min_value=1,
+            "하루 점수",
+            min_value=0,
             max_value=10,
             value=5,
-            help="1(매우 약함) ~ 10(매우 강함)"
+            help="0(괜찮음) ~ 10(최악)"
         )
         
-        # 감정 강도 시각화
+        # 점수 시각화
         if emotion_intensity <= 3:
-            st.info("😌 약한 감정 상태")
+            st.success("😌 괜찮은 상태")
         elif emotion_intensity <= 6:
-            st.warning("😐 중간 정도의 감정 상태")
+            st.info("😐 보통 상태")
         else:
-            st.error("😰 강한 감정 상태")
+            st.warning("😰 힘든 상태")
         
         st.markdown("---")
         
@@ -157,7 +150,6 @@ def render_user_info_form():
             return {
                 'gender': gender,
                 'age': age,
-                'school_level': school_level,
                 'emotion_intensity': emotion_intensity
             }
     
@@ -179,20 +171,19 @@ def render_sidebar_profile(user_info):
         ">
             <p style="margin: 5px 0;"><strong>성별:</strong> {user_info['gender']}</p>
             <p style="margin: 5px 0;"><strong>나이:</strong> {user_info['age']}세</p>
-            <p style="margin: 5px 0;"><strong>학교급:</strong> {user_info['school_level']}</p>
-            <p style="margin: 5px 0;"><strong>현재 감정 강도:</strong> {user_info['emotion_intensity']}/10</p>
+            <p style="margin: 5px 0;"><strong>하루 점수:</strong> {user_info['emotion_intensity']}/10</p>
         </div>
         """, unsafe_allow_html=True)
         
-        # 감정 상태 표시
-        st.markdown("### 😊 현재 감정 상태")
+        # 하루 점수 상태 표시
+        st.markdown("### 😊 하루 점수")
         intensity = user_info['emotion_intensity']
         if intensity <= 3:
-            st.success("😌 안정적인 상태")
+            st.success("😌 괜찮은 상태")
         elif intensity <= 6:
-            st.warning("😐 보통 상태")
+            st.info("😐 보통 상태")
         else:
-            st.error("😰 힘든 상태")
+            st.warning("😰 힘든 상태")
         
         # 진행 바
         st.progress(intensity / 10)
@@ -297,7 +288,7 @@ def render_chat_header(user_info):
         margin-bottom: 20px;
         text-align: center;
     ">
-        <strong>{user_info['school_level']} {user_info['age']}세 친구</strong>와 함께하는 대화 시간입니다 ✨
+        <strong>{user_info['age']}세 친구</strong>와 함께하는 대화 시간입니다 ✨
     </div>
     """, unsafe_allow_html=True)
     
