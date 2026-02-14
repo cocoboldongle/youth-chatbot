@@ -1580,7 +1580,7 @@ def generate_quick_replies(response, user_message, current_stage):
         
         # 선택지 생성 프롬프트
         prompt = f"""
-다음 AI 응답에 대해 청소년이 **선택할 수 있는 간단한 답변 선택지 3개**를 생성하세요.
+다음 AI 응답에 대해 청소년이 **선택할 수 있는 자연스러운 답변 선택지 3개**를 생성하세요.
 
 {context_hint}
 
@@ -1591,26 +1591,36 @@ def generate_quick_replies(response, user_message, current_stage):
 {user_message}
 
 **선택지 생성 규칙:**
-1. 각 선택지는 **8자 이내**로 짧게
-2. 청소년이 쉽게 선택할 수 있도록
-3. 다양한 방향의 답변 포함 (긍정적/부정적/중립적)
-4. 자연스럽고 구어체로
-5. 마지막 선택지는 반드시 "직접 입력할게"
+1. 각 선택지는 **완전한 문장**으로 (단어가 아닌 자연스러운 문장)
+2. 15-25자 정도의 적당한 길이
+3. 청소년이 실제로 말할 법한 구어체
+4. 다양한 방향의 답변 포함 (긍정적/부정적/중립적)
+5. 마지막 선택지는 반드시 "직접 입력할게요"
+
+**좋은 예시:**
+- "진짜 속상했어요"
+- "화가 나긴 했지만 참았어요"
+- "별로 신경 안 썼어요"
+
+**나쁜 예시:**
+- "슬펐어" (너무 짧음)
+- "그냥" (단어만)
+- "네" (불충분)
 
 **JSON 형식으로만 응답:**
 {{
-  "options": ["선택지1", "선택지2", "직접 입력할게"]
+  "options": ["선택지1", "선택지2", "직접 입력할게요"]
 }}
 """
         
         response_obj = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "당신은 청소년 친화적인 짧은 선택지를 생성하는 전문가입니다. 항상 JSON 형식으로만 응답하세요."},
+                {"role": "system", "content": "당신은 청소년이 실제로 말할 법한 자연스럽고 완전한 문장 형태의 선택지를 생성하는 전문가입니다. 항상 JSON 형식으로만 응답하세요."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=200,
+            max_tokens=300,  # 더 긴 문장을 위해 토큰 증가
             response_format={"type": "json_object"}
         )
         
@@ -1618,10 +1628,16 @@ def generate_quick_replies(response, user_message, current_stage):
         result = json.loads(result_text)
         options = result.get('options', [])
         
-        # 선택지 검증
+        # 선택지 검증 (길이 제한 완화)
         if len(options) == 3:
-            # 각 선택지 길이 체크 (10자 이하)
-            if all(len(opt) <= 10 for opt in options):
+            # 각 선택지 길이 체크 (5-30자 허용)
+            valid = True
+            for opt in options:
+                if len(opt) < 5 or len(opt) > 30:
+                    valid = False
+                    break
+            
+            if valid:
                 print(f"[선택지 생성 성공] {options}")
                 return options
         
