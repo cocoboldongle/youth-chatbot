@@ -1460,6 +1460,9 @@ def process_user_input(user_message, user_info):
                             # 선택 질문 추가
                             selection_question = "\n이 중에서 어떤 게 제일 너의 상황에 크게 다가오는 것 같아? 1, 2, 3 중에 골라봐."
                             
+                            # ===== 선택지 초기화 (인지왜곡 피드백에는 선택지 불필요) =====
+                            clear_quick_replies()
+                            
                             # 기존 응답(질문)을 제거하고 피드백으로 교체
                             st.session_state.messages[-1]['content'] = distortion_feedback + selection_question
                             
