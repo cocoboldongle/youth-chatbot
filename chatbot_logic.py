@@ -6,6 +6,7 @@ import streamlit as st
 from openai import OpenAI
 import datetime
 import os
+import json
 
 # ========== 안전 에이전트 Import ==========
 try:
@@ -71,6 +72,10 @@ def initialize_session_state():
         st.session_state.restructuring_method = None  # 선택된 재구조화 방법
     if 'evaluation_logs' not in st.session_state:
         st.session_state.evaluation_logs = []  # 평가 로그 저장
+    
+    # ========== 빠른 답변 선택지 ==========
+    if 'quick_replies' not in st.session_state:
+        st.session_state.quick_replies = None  # 현재 선택 가능한 답변들
     
     # ========== 안전 에이전트 초기화 ==========
     if 'safety_agent' not in st.session_state and SAFETY_AGENT_AVAILABLE:
@@ -1229,6 +1234,16 @@ def process_user_input(user_message, user_info):
         # 챗봇 응답 추가
         add_assistant_message(response)
         
+        # ===== 선택지 생성 =====
+        if should_provide_options(response, current_stage):
+            options = generate_quick_replies(response, user_message, current_stage)
+            if options:
+                set_quick_replies(options)
+            else:
+                clear_quick_replies()
+        else:
+            clear_quick_replies()
+        
         # 평가 에이전트로 완료 여부 확인
         # 최소 5턴(사용자 5번 메시지) 이상일 때만 평가
         user_messages = [m for m in st.session_state.messages if m["role"] == "user"]
@@ -1236,6 +1251,9 @@ def process_user_input(user_message, user_info):
             is_complete, eval_result = check_collection_complete_with_evaluator()
             
             if is_complete:
+                # 선택지 초기화 (단계 전환 시)
+                clear_quick_replies()
+                
                 # 다음 단계로 전환
                 st.session_state.current_stage = 'analysis'
                 
@@ -1381,6 +1399,16 @@ def process_user_input(user_message, user_info):
             add_assistant_message(response)
             st.session_state.messages[-1]['stage'] = 'analysis'
             
+            # ===== 선택지 생성 =====
+            if should_provide_options(response, current_stage):
+                options = generate_quick_replies(response, user_message, current_stage)
+                if options:
+                    set_quick_replies(options)
+                else:
+                    clear_quick_replies()
+            else:
+                clear_quick_replies()
+            
             # 인지왜곡 추출 준비 평가 (최소 5턴 이상일 때)
             # 이미 추출이 완료되지 않았다면 계속 평가
             if not st.session_state.get('distortion_extracted', False):
@@ -1488,3 +1516,128 @@ def process_user_input(user_message, user_info):
         response = generate_response_with_gpt(user_message, user_info)
         add_assistant_message(response)
         return response
+
+
+# ========== 빠른 답변 선택지 생성 ==========
+
+def should_provide_options(response, current_stage):
+    """
+    선택지 제공 여부 판단
+    
+    Args:
+        response: AI 응답 텍스트
+        current_stage: 현재 단계 (collection, analysis, restructuring)
+    
+    Returns:
+        bool: 선택지 제공 여부
+    """
+    # Stage 3 (재구조화)에서는 선택지 제공 안 함
+    if current_stage == 'restructuring':
+        return False
+    
+    # Stage 1, 2에서만 제공
+    if current_stage not in ['collection', 'analysis']:
+        return False
+    
+    # 질문으로 끝나는지 확인
+    if response.strip().endswith('?') or '?' in response[-30:]:
+        return True
+    
+    # 특정 키워드 포함 시
+    question_keywords = ['어떻게', '뭐가', '언제', '왜', '어땠', '느꼈', '생각', '어떤']
+    if any(keyword in response for keyword in question_keywords):
+        return True
+    
+    return False
+
+
+def generate_quick_replies(response, user_message, current_stage):
+    """
+    GPT를 사용하여 빠른 답변 선택지 생성
+    
+    Args:
+        response: AI 응답
+        user_message: 사용자 메시지
+        current_stage: 현재 단계
+    
+    Returns:
+        list: 2-4개의 선택지 (또는 None)
+    """
+    try:
+        api_key = get_api_key()
+        if not api_key:
+            return None
+        
+        client = OpenAI(api_key=api_key)
+        
+        # 단계별 프롬프트 조정
+        if current_stage == 'collection':
+            context_hint = "Stage 1 (정보 수집): 상황, 감정, 행동을 파악하는 단계입니다."
+        elif current_stage == 'analysis':
+            context_hint = "Stage 2 (인지왜곡 탐색): 자동적 사고, 패턴, 극단성을 파악하는 단계입니다."
+        else:
+            context_hint = ""
+        
+        # 선택지 생성 프롬프트
+        prompt = f"""
+다음 AI 응답에 대해 청소년이 **선택할 수 있는 간단한 답변 선택지 3개**를 생성하세요.
+
+{context_hint}
+
+[AI 응답]
+{response}
+
+[이전 사용자 메시지]
+{user_message}
+
+**선택지 생성 규칙:**
+1. 각 선택지는 **8자 이내**로 짧게
+2. 청소년이 쉽게 선택할 수 있도록
+3. 다양한 방향의 답변 포함 (긍정적/부정적/중립적)
+4. 자연스럽고 구어체로
+5. 마지막 선택지는 반드시 "직접 입력할게"
+
+**JSON 형식으로만 응답:**
+{{
+  "options": ["선택지1", "선택지2", "직접 입력할게"]
+}}
+"""
+        
+        response_obj = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "당신은 청소년 친화적인 짧은 선택지를 생성하는 전문가입니다. 항상 JSON 형식으로만 응답하세요."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=200,
+            response_format={"type": "json_object"}
+        )
+        
+        result_text = response_obj.choices[0].message.content
+        result = json.loads(result_text)
+        options = result.get('options', [])
+        
+        # 선택지 검증
+        if len(options) == 3:
+            # 각 선택지 길이 체크 (10자 이하)
+            if all(len(opt) <= 10 for opt in options):
+                print(f"[선택지 생성 성공] {options}")
+                return options
+        
+        print(f"[선택지 생성 실패] 조건 불만족: {options}")
+        return None
+        
+    except Exception as e:
+        print(f"[선택지 생성 오류] {str(e)}")
+        return None
+
+
+def set_quick_replies(options):
+    """선택지를 세션에 저장"""
+    st.session_state.quick_replies = options
+
+
+def clear_quick_replies():
+    """선택지 초기화"""
+    st.session_state.quick_replies = None
