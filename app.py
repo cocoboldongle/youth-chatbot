@@ -114,8 +114,45 @@ def show_chat_page():
     # 채팅 메시지 렌더링
     render_chat_messages(st.session_state.messages)
     
+    # ===== 빠른 답변 선택지 표시 =====
+    if 'quick_replies' in st.session_state and st.session_state.quick_replies:
+        st.markdown("---")
+        st.markdown("**💡 빠른 답변을 선택하거나 직접 입력하세요:**")
+        
+        options = st.session_state.quick_replies
+        
+        # 선택지 개수에 따라 열 개수 조정
+        if len(options) <= 2:
+            cols = st.columns(2)
+        else:
+            cols = st.columns(3)
+        
+        # 버튼 생성
+        for idx, option in enumerate(options):
+            col_idx = idx % len(cols)
+            with cols[col_idx]:
+                if st.button(
+                    option, 
+                    key=f"quick_reply_{idx}",
+                    use_container_width=True,
+                    type="secondary"
+                ):
+                    # 선택한 답변을 사용자 입력으로 처리
+                    # 선택지 초기화
+                    from chatbot_logic import clear_quick_replies
+                    clear_quick_replies()
+                    
+                    with st.spinner("생각 중..."):
+                        process_user_input(option, user_info)
+                    
+                    st.rerun()
+    
     # 사용자 입력 처리
     if prompt := get_user_input():
+        # 선택지 초기화 (직접 입력 시)
+        from chatbot_logic import clear_quick_replies
+        clear_quick_replies()
+        
         # 사용자 입력 처리 및 응답 생성
         with st.spinner("생각 중..."):
             process_user_input(prompt, user_info)
