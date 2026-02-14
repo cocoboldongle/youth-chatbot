@@ -1580,7 +1580,7 @@ def generate_quick_replies(response, user_message, current_stage):
         
         # 선택지 생성 프롬프트
         prompt = f"""
-다음 AI 응답에 대해 청소년이 **선택할 수 있는 자연스러운 답변 선택지 3개**를 생성하세요.
+다음 AI 응답에 대해 청소년이 **실제 대화에서 할 법한 자연스러운 답변 3개**를 생성하세요.
 
 {context_hint}
 
@@ -1590,37 +1590,41 @@ def generate_quick_replies(response, user_message, current_stage):
 [이전 사용자 메시지]
 {user_message}
 
-**선택지 생성 규칙:**
-1. 각 선택지는 **완전한 문장**으로 (단어가 아닌 자연스러운 문장)
-2. 15-25자 정도의 적당한 길이
-3. 청소년이 실제로 말할 법한 구어체
-4. 다양한 방향의 답변 포함 (긍정적/부정적/중립적)
-5. 마지막 선택지는 반드시 "직접 입력할게요"
+**핵심 원칙:**
+이것은 **대화의 다음 턴**입니다. 청소년이 AI의 질문에 대해 실제로 어떻게 답할지 생각하세요.
 
-**좋은 예시:**
-- "진짜 속상했어요"
-- "화가 나긴 했지만 참았어요"
-- "별로 신경 안 썼어요"
+**선택지 생성 규칙:**
+1. **충분히 긴 문장** - 최소 20자 이상, 권장 25-40자
+2. **완전한 대화 턴** - 단답이 아닌, 생각이나 상황을 설명하는 문장
+3. **청소년 구어체** - "~거든요", "~했었어요", "~것 같아요" 등 자연스러운 표현
+4. **구체적이고 풍부** - 감정, 상황, 이유 등을 포함
+5. **다양한 방향** - 긍정적/부정적/중립적 각각 다른 느낌
+6. **마지막은 반드시** "직접 입력할게요"
+
+**좋은 예시 (이 정도 길이!):**
+- "진짜 속상했어요. 엄마가 자꾸 그러니까 화가 나더라고요"
+- "처음엔 별로 신경 안 썼는데, 나중에 생각해보니까 좀 그렇더라고요"
+- "솔직히 말하면 엄청 화났었어요. 그래서 방에 들어가서 문 닫아버렸어요"
 
 **나쁜 예시:**
-- "슬펐어" (너무 짧음)
-- "그냥" (단어만)
-- "네" (불충분)
+- "진짜 속상했어요" (너무 짧음 - 최소 20자 이상!)
+- "화났어요" (단답형 - 상황이나 감정을 더 설명해야 함)
+- "그랬어요" (불충분 - 무엇을, 어떻게 했는지 구체적으로)
 
 **JSON 형식으로만 응답:**
 {{
-  "options": ["선택지1", "선택지2", "직접 입력할게요"]
+  "options": ["선택지1 (25-40자)", "선택지2 (25-40자)", "직접 입력할게요"]
 }}
 """
         
         response_obj = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",  # gpt-4o로 변경
             messages=[
-                {"role": "system", "content": "당신은 청소년이 실제로 말할 법한 자연스럽고 완전한 문장 형태의 선택지를 생성하는 전문가입니다. 항상 JSON 형식으로만 응답하세요."},
+                {"role": "system", "content": "당신은 청소년의 실제 대화 방식을 깊이 이해하는 전문가입니다. 청소년이 다음 턴에 할 법한 자연스럽고 충분히 긴 대화 문장을 생성하세요. 단답이 아닌, 생각과 감정을 표현하는 완전한 문장을 만드세요. 항상 JSON 형식으로만 응답하세요."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=300,  # 더 긴 문장을 위해 토큰 증가
+            temperature=0.8,  # 더 다양한 표현을 위해 증가
+            max_tokens=500,  # 더 긴 문장을 위해 증가
             response_format={"type": "json_object"}
         )
         
@@ -1628,14 +1632,17 @@ def generate_quick_replies(response, user_message, current_stage):
         result = json.loads(result_text)
         options = result.get('options', [])
         
-        # 선택지 검증 (길이 제한 완화)
+        # 선택지 검증 (길이 기준 강화)
         if len(options) == 3:
-            # 각 선택지 길이 체크 (5-30자 허용)
+            # 각 선택지 길이 체크 (20-60자 허용)
             valid = True
-            for opt in options:
-                if len(opt) < 5 or len(opt) > 30:
-                    valid = False
-                    break
+            for idx, opt in enumerate(options):
+                # 마지막 선택지 ("직접 입력할게요")는 예외
+                if idx < 2:
+                    if len(opt) < 20 or len(opt) > 60:
+                        print(f"[선택지 길이 부족] '{opt}' = {len(opt)}자 (최소 20자 필요)")
+                        valid = False
+                        break
             
             if valid:
                 print(f"[선택지 생성 성공] {options}")
