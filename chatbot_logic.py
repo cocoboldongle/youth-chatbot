@@ -1378,35 +1378,8 @@ def process_user_input(user_message, user_info):
                         print(f"[청소년이 선택한 왜곡: {selected['type']}]")
                         print(f"{'='*60}\n")
                         
-                        # 왜곡 타입별 청소년 친화적 설명
-                        distortion_explanations = {
-                            "흑백 사고": "\"완벽 아니면 실패\"처럼 극단적으로만 생각하는 거야. 중간이 없고, 조금만 잘못돼도 전부 망한 것처럼 느껴지는 패턴이지.",
-                            "과잉 일반화": "한 번 일어난 일을 \"맨날 그래\" \"항상 그래\"로 확대하는 거야. 한 번 실수하면 앞으로도 계속 그럴 거라고 생각하는 패턴이지.",
-                            "부정적 편향": "잘한 건 안 보이고 나쁜 것만 크게 보이는 거야. 칭찬받아도 실수 하나만 계속 떠오르는 패턴이지.",
-                            "긍정 축소화": "내가 잘한 건 \"별거 아니야\" \"그냥 운\"이라고 작게 보는 거야. 자기 성취를 인정하지 못하는 패턴이지.",
-                            "성급한 판단": "확실한 증거 없이 \"분명 그럴 거야\"라고 단정하는 거야. 상대방 표정만 보고 날 싫어한다고 결론 내리는 패턴이지.",
-                            "확대와 축소": "작은 실수를 \"인생 끝\" \"완전 망함\"처럼 크게 만드는 거야. 시험 하나 못 봤는데 인생 망한 것처럼 느껴지는 패턴이지.",
-                            "감정적 추론": "\"기분이 그러니까 진짜 그런 거야\"처럼 느낌을 사실로 받아들이는 거야. 불안하면 나쁜 일이 정말 일어날 거라고 믿는 패턴이지.",
-                            "해야 한다 진술": "\"무조건 ~해야 해\" \"절대 ~하면 안 돼\"처럼 자신을 너무 엄격하게 다그치는 거야. 못 지키면 자책하는 패턴이지.",
-                            "낙인찍기": "한두 번 실수하고 \"나는 바보야\" \"나는 실패자야\"처럼 자신에게 딱지 붙이는 거야. 행동이 아니라 자기 자체를 부정적으로 규정하는 패턴이지.",
-                            "개인화": "내 잘못이 아닌 일도 \"다 내 탓이야\"라고 자책하는 거야. 다른 요인들은 안 보이고 모든 책임을 자기한테 돌리는 패턴이지."
-                        }
-                        
-                        # 선택된 왜곡에 대한 설명
-                        distortion_type = selected['type']
-                        explanation = distortion_explanations.get(distortion_type, "이 패턴에 대해 좀 더 이야기해볼까?")
-                        
-                        # 증거 언급
-                        evidence_text = ""
-                        if selected.get('evidence') and len(selected['evidence']) > 0:
-                            evidence_list = selected['evidence'][:2]
-                            if len(evidence_list) == 1:
-                                evidence_text = f"\n\n네가 \"{evidence_list[0]}\"라고 했을 때, 이 패턴이 보였거든."
-                            else:
-                                evidence_text = f"\n\n네가 \"{evidence_list[0]}\"나 \"{evidence_list[1]}\" 같은 말을 했을 때, 이 패턴이 보였거든."
-                        
-                        # 선택 확인 + 설명 + 증거 메시지
-                        confirmation = f"그래, '{distortion_type}'가 제일 크게 다가오는구나.\n\n{explanation}{evidence_text}\n\n이 패턴에 대해 좀 더 이야기해볼까?"
+                        # 선택 확인 메시지
+                        confirmation = f"그래, '{selected['type']}'가 제일 크게 다가오는구나. 이 패턴에 대해 좀 더 이야기해볼까?"
                         add_assistant_message(confirmation)
                         st.session_state.messages[-1]['stage'] = 'analysis'
                         
